@@ -1,55 +1,87 @@
-import random
+class ObjList:
 
-class Cell:
+    def __init__(self, data):
+        self.__next = self.__prev = None
+        self.__data = data
 
-    def __init__(self, mine=False, around_mines=0):
-        self.around_mines = around_mines
-        self.mine = mine
-        self.fl_open = False
+    @property
+    def data(self):
+        return self.__data
 
+    @data.setter
+    def data(self, new):
+        if type(new) == str:
+            self.__data = new
 
-class GamePole:
+    @property
+    def prev(self):
+        return self.__prev
 
-    def __init__(self, N, M):
-        """
-        :param N: Размер поля
-        :param M: Число мин
-        """
-        self.N = N
-        self.M = M
-        self.pole = [[Cell(False) for _ in range(self.N)] for _ in range(self.N)]
-        self.init()
-        self.check_mines()
+    @prev.setter
+    def prev(self, new):
+        if type(new) in (ObjList, type(None)):
+            self.__prev = new
 
-    def check_mines(self):
-        index = (-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)
-        for i in range(self.N):
-            for j in range(self.N):
-                if not self.pole[i][j].mine:
-                    mines = sum(self.pole[i + x][j + y].mine for x, y in index
-                                if 0 <= x + i < self.N
-                                and 0 <= y + j < self.N)
-                    self.pole[i][j].around_mines = mines
+    @property
+    def next(self):
+        return self.__next
 
-    def init(self):
-        m = 0
-        while m < self.M:
-            x, y = [random.randint(0, self.N - 1) for _ in range(2)]
-
-            if self.pole[x][y].mine:
-                continue
-            self.pole[x][y].mine = True
-            m += 1
-
-    def show(self):
-        for i in self.pole:
-            for j in i:
-                if j.fl_open:
-                    print(j.around_mines if not j.mine else '*', end=' ')
-                else:
-                    print("#", end=' ')
-            print()
+    @next.setter
+    def next(self, new):
+        if type(new) in (ObjList, type(None)):
+            self.__next = new
 
 
-pole_game = GamePole(N=10, M=12)
-pole_game.show()
+class LinkedList:
+
+    def __init__(self):
+        self.head = self.tail = None
+
+    def add_obj(self, obj: ObjList):
+        obj.prev = self.tail
+
+        if self.tail:
+            self.tail.next = obj
+
+        self.tail = obj
+
+        if not self.head:
+            self.head = obj
+
+    def __get_object_by_index(self, indx):
+        h = self.head
+        n = 0
+
+        while h and n < indx:
+            h = h.next
+            n += 1
+        return h
+
+    def remove_obj(self, indx=None):
+        obj = self.__get_object_by_index(indx)
+        if obj is None:
+            return
+
+        p, n = obj.prev, obj.next
+
+        if p:
+            p.next = n
+        if n:
+            n.prev = p
+        if self.head == obj:
+            self.head = n
+        if self.tail == obj:
+            self.tail = p
+
+    def __len__(self):
+        n = 0
+        h = self.head
+
+        while h:
+            n += 1
+            h = h.next
+        return n
+
+    def __call__(self, indx):
+        obj = self.__get_object_by_index(indx)
+        return obj.data if obj else None
